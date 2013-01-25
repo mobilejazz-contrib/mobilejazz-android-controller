@@ -5,7 +5,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ProgressBar;
 
-public abstract class ProgressLayoutModificationDialog<T> extends LayoutModificationDialog<T> {
+public abstract class ProgressLayoutModificationDialog extends LayoutModificationDialog {
 
 	private int mProgressBarId;
 	private ProgressBar mProgressBar;

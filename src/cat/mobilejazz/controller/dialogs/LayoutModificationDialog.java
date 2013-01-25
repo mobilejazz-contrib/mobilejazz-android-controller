@@ -1,30 +1,18 @@
 package cat.mobilejazz.controller.dialogs;
 
 import android.os.Bundle;
-import android.support.v4.app.LoaderManager.LoaderCallbacks;
-import android.support.v4.content.Loader;
 import android.view.LayoutInflater;
 import android.view.View;
 
-public abstract class LayoutModificationDialog<T> extends DialogModificationTask implements LoaderCallbacks<T> {
+public abstract class LayoutModificationDialog extends DialogModificationTask {
 
 	private int mLayoutId;
-	private T mValue;
 	private View mContentView;
 
 	public LayoutModificationDialog(int layoutId, int titleResId, int positiveButtonLabelResId,
 			int neutralButtonLabelResId) {
 		super(titleResId, positiveButtonLabelResId, neutralButtonLabelResId);
 		mLayoutId = layoutId;
-	}
-
-	/**
-	 * Gets the loaded value.
-	 * 
-	 * @return
-	 */
-	public T getValue() {
-		return mValue;
 	}
 
 	@Override
@@ -44,7 +32,6 @@ public abstract class LayoutModificationDialog<T> extends DialogModificationTask
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
-		getLoaderManager().restartLoader(0, getArguments(), this);
 	}
 
 	@Override
@@ -53,21 +40,13 @@ public abstract class LayoutModificationDialog<T> extends DialogModificationTask
 		
 	}
 
-	protected abstract void onInitalizeContentView(View contentView, T initialValue);
+	protected abstract void onInitalizeContentView(View contentView);
 
 	@Override
 	protected View createContentView(Bundle savedInstanceState, LayoutInflater inflater) {
 		mContentView = inflater.inflate(mLayoutId, null);
+		onInitalizeContentView(mContentView);
 		return mContentView;
 	}
 
-	public void onLoadFinished(Loader<T> loader, T value) {
-		mValue = value;
-		onInitalizeContentView(mContentView, mValue);
-	};
-
-	@Override
-	public void onLoaderReset(Loader<T> loader) {
-		mValue = null;
-	}
 }
