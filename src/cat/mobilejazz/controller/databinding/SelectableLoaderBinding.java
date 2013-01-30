@@ -6,6 +6,7 @@ import android.view.View;
 import android.widget.Adapter;
 import android.widget.AdapterView;
 import cat.mobilejazz.utilities.ObjectUtils;
+import cat.mobilejazz.utilities.debug.Debug;
 
 public abstract class SelectableLoaderBinding<T extends Adapter, D, E> extends LoaderDataBinding<T, D> {
 
@@ -65,6 +66,7 @@ public abstract class SelectableLoaderBinding<T extends Adapter, D, E> extends L
 			index = 0;
 		}
 		setSelection(index);
+		entryCache = null;
 	}
 
 	/**
@@ -107,6 +109,9 @@ public abstract class SelectableLoaderBinding<T extends Adapter, D, E> extends L
 		E selection = getSelection();
 		super.onLoadFinished(loader, data);
 		setSelectionForce(selection);
+		
+		Debug.debug(String.valueOf(getSelection()));
+		
 		if (initialSelection == null) {
 			initialSelection = getSelection();
 		}
