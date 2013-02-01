@@ -13,10 +13,14 @@ public abstract class LayoutInputDialog<T> extends InputDialog<T> {
 	private T mInitialValue;
 
 	public LayoutInputDialog(int layoutId, int titleResId, int positiveButtonLabelResId, int neutralButtonLabelResId,
-			T initialValue) {
+			T defaultInitialValue) {
 		super(titleResId, positiveButtonLabelResId, neutralButtonLabelResId);
 		mLayoutId = layoutId;
-		mInitialValue = initialValue;
+		mInitialValue = defaultInitialValue;
+	}
+
+	protected void setInitialValue(T value) {
+		mInitialValue = value;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -24,7 +28,7 @@ public abstract class LayoutInputDialog<T> extends InputDialog<T> {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		if (savedInstanceState != null) {
-			mInitialValue = (T)savedInstanceState.get(ARG_INITIAL_VALUE);
+			mInitialValue = (T) savedInstanceState.get(ARG_INITIAL_VALUE);
 			getArguments().putAll(savedInstanceState);
 		}
 	}
