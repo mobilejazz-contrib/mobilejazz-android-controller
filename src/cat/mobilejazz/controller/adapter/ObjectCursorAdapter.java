@@ -40,7 +40,7 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 
 	protected int mLayoutResId;
 	protected LayoutInflater mInflater;
-	
+
 	protected ViewBinder<T> mViewBinder;
 
 	private T objectHolder;
@@ -49,7 +49,7 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 		super(context, null, 0);
 		mLayoutResId = layoutResId;
 		mInflater = LayoutInflater.from(context);
-		
+
 		mViewBinder = viewBinder;
 	}
 
@@ -95,6 +95,13 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 	@Override
 	public View newView(Context context, Cursor cursor, ViewGroup parent) {
 		return mInflater.inflate(mLayoutResId, parent, false);
+	}
+
+	@Override
+	public T getItem(int position) {
+		T instance = newInstance();
+		bindInstance(instance, (Cursor) super.getItem(position));
+		return instance;
 	}
 
 }
