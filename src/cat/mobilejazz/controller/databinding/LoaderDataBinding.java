@@ -67,7 +67,13 @@ public abstract class LoaderDataBinding<T extends Adapter, D> extends DataBindin
 
 	private List<LoaderDataBinding<?, ?>> dependencies;
 	private List<LoaderDataBinding<?, ?>> dependsOn;
-	
+
+	/**
+	 * Dependencies should be reloaded when the underlying data of this binding
+	 * changes.
+	 */
+	private ArrayList<LoaderDataBinding<?, ?>> dataDependencies;
+
 	private OnItemSelectedListener itemSelectedListener;
 
 	private void init(LoaderFactory<D> loaderFactory, LoaderManager loaderManager) {
@@ -77,6 +83,7 @@ public abstract class LoaderDataBinding<T extends Adapter, D> extends DataBindin
 		this.pendingLoad = false;
 		dependencies = new ArrayList<LoaderDataBinding<?, ?>>();
 		dependsOn = new ArrayList<LoaderDataBinding<?, ?>>();
+		dataDependencies = new ArrayList<LoaderDataBinding<?, ?>>();
 	}
 
 	public LoaderDataBinding(View parent, int resId, T adapter, LoaderFactory<D> loaderFactory,
@@ -89,7 +96,7 @@ public abstract class LoaderDataBinding<T extends Adapter, D> extends DataBindin
 		super(view, adapter);
 		init(loaderFactory, loaderManager);
 	}
-	
+
 	@Override
 	public void bind() {
 		super.bind();
@@ -99,7 +106,35 @@ public abstract class LoaderDataBinding<T extends Adapter, D> extends DataBindin
 	public void setOnItemSelectedListener(OnItemSelectedListener listener) {
 		itemSelectedListener = listener;
 	}
-	
+
+	/**
+	 * The specified binding will be reloaded whenever the underlying data of
+	 * this binding has been changed. Note that the selection may or may not
+	 * have changed. If a binding is added both as a selection and as a data
+	 * dependency (see {@link #addDependency(LoaderDataBinding)}) and both
+	 * conditions happen to be true, the specified binding is only reloaded
+	 * once.
+	 * 
+	 * @param binding
+	 *            The {@link LoaderDataBinding} to be reloaded whenever the data
+	 *            of this binding changes.
+	 */
+	public void addDataDependency(LoaderDataBinding<?, ?> binding) {
+		dataDependencies.add(binding);
+	}
+
+	/**
+	 * The specified binding will be reloaded whenever the selection on this
+	 * binding has been changed. Note that the underlying data may or may not
+	 * have changed. If a binding is added both as a selection and as a data
+	 * dependency (see {@link #addDataDependency(LoaderDataBinding)}) and both
+	 * conditions happen to be true, the specified binding is only reloaded
+	 * once.
+	 * 
+	 * @param binding
+	 *            The {@link LoaderDataBinding} to be reloaded whenever the
+	 *            selection of this binding changes.
+	 */
 	public void addDependency(LoaderDataBinding<?, ?> binding) {
 		dependencies.add(binding);
 		binding.dependsOn.add(this);
@@ -145,7 +180,11 @@ public abstract class LoaderDataBinding<T extends Adapter, D> extends DataBindin
 				// there was a onItemSelected in the past where the dependencies
 				// were not updated. We need to update them now
 				updateDependencies();
+				updateDataDependencies(true);
+			} else {
+				updateDataDependencies(false);
 			}
+
 			dataReady = true;
 		} else {
 			throw new IllegalArgumentException("Invalid loader id for this binding: " + loader.getId());
@@ -161,9 +200,20 @@ public abstract class LoaderDataBinding<T extends Adapter, D> extends DataBindin
 			throw new IllegalArgumentException("Invalid loader id for this binding: " + loader.getId());
 		}
 	}
-	
+
 	protected void updateDependencies() {
 		for (LoaderDataBinding<?, ?> binding : dependencies) {
+			binding.restartLoader(null);
+		}
+	}
+
+	protected void updateDataDependencies(boolean onlyDataDependencies) {
+		List<LoaderDataBinding<?, ?>> deps = new ArrayList<LoaderDataBinding<?, ?>>(dataDependencies);
+		if (onlyDataDependencies) {
+			deps.removeAll(dependencies);
+		}
+
+		for (LoaderDataBinding<?, ?> binding : deps) {
 			binding.restartLoader(null);
 		}
 	}
