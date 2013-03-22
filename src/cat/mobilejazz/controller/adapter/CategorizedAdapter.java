@@ -60,7 +60,7 @@ public abstract class CategorizedAdapter<Category, AdapterType extends Adapter> 
 	 */
 	protected abstract void recomputeHeaderIndices(TreeMap<Integer, Category> headerIndices, AdapterType delegate);
 
-	private int getCursorIndex(int position) {
+	public int getCursorIndex(int position) {
 		return position - mHeaderIndices.headMap(position).size();
 	}
 

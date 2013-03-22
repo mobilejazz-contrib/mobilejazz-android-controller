@@ -34,7 +34,7 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 		 *            The object defining the data that is to be bound for the
 		 *            view.
 		 */
-		public void bindView(View view, Context context, LayoutInflater inflater, T object);
+		public void bindView(View view, Context context, LayoutInflater inflater, T object, int position);
 
 	}
 
@@ -89,7 +89,7 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 
 	@Override
 	public void bindView(View view, Context context, Cursor cursor) {
-		mViewBinder.bindView(view, context, mInflater, fromCursor(cursor));
+		mViewBinder.bindView(view, context, mInflater, fromCursor(cursor), cursor.getPosition());
 	}
 
 	@Override
