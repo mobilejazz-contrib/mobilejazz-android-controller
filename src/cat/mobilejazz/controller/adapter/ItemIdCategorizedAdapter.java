@@ -29,7 +29,8 @@ public abstract class ItemIdCategorizedAdapter<Category, AdapterType extends Ada
 	 * 
 	 * @param position
 	 *            The position of this item.
-	 * @return The category of the item at the given position.
+	 * @return The category of the item at the given position. May return
+	 *         {@code null} to indicate the absence of a particular category.
 	 */
 	protected abstract Category getCategory(int position);
 
@@ -50,7 +51,10 @@ public abstract class ItemIdCategorizedAdapter<Category, AdapterType extends Ada
 			long itemId = getItemCategoryId(i);
 			if (itemId != currentId) {
 				currentId = itemId;
-				headerIndices.put(headerIndices.size() + i, getCategory(i));
+				Category category = getCategory(i);
+				if (category != null) {
+					headerIndices.put(headerIndices.size() + i, category);
+				}
 			}
 		}
 	}
