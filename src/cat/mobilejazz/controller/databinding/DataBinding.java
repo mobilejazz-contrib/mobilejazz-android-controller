@@ -44,6 +44,9 @@ public class DataBinding<T extends Adapter> {
 	 *            The adapter that provides the data.
 	 */
 	public DataBinding(AdapterView<T> view, T adapter) {
+		if (view == null) {
+			throw new IllegalArgumentException("AdapterView may not be null.");
+		}
 		this.view = view;
 		this.adapter = adapter;
 	}
