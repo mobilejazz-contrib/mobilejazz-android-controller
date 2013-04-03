@@ -44,6 +44,10 @@ public abstract class CategorizedAdapter<Category, AdapterType extends Adapter> 
 		initialize(delegate);
 	}
 
+	protected Context getContext() {
+		return mContext;
+	}
+
 	/**
 	 * Subclasses have to implement this method to categorize the cursor. It is
 	 * assumed, that cursor items are already sorted such that each category
