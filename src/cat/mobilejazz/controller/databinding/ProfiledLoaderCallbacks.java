@@ -18,7 +18,21 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
 	public static final int FINISHED = 0;
 	public static final int RESET = 1;
 
+	private static final String KEY_START_TIME_IDS = "cat.mobilejazz.ProfileLoaderCallbacks.startTimeIds";
+	private static final String KEY_START_TIME_VALUES = "cat.mobilejazz.ProfileLoaderCallbacks.startTimeValues";
+
 	private SparseArray<Long> startTimes = new SparseArray<Long>();
+
+	public void initFromSavedInstanceState(Bundle savedInstanceState) {
+		if (savedInstanceState != null) {
+			int[] ids = savedInstanceState.getIntArray(KEY_START_TIME_IDS);
+			long[] values = savedInstanceState.getLongArray(KEY_START_TIME_VALUES);
+
+			for (int i = 0; i < ids.length; ++i) {
+				startTimes.put(ids[i], values[i]);
+			}
+		}
+	}
 
 	/**
 	 * Subclasses must create and return a loader here. Same semantics as
@@ -49,14 +63,31 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
 
 	@Override
 	public void onLoadFinished(Loader<T> loader, T data) {
-		long duration = System.currentTimeMillis() - startTimes.get(loader.getId());
-		sendTime(duration, loader, data);
+		Long startTime = startTimes.get(loader.getId());
+		if (startTime != null) {
+			long duration = System.currentTimeMillis() - startTime;
+			sendTime(duration, loader, data);
+		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<T> loader) {
-		long duration = System.currentTimeMillis() - startTimes.get(loader.getId());
-		sendTime(duration, loader, null);
+		Long startTime = startTimes.get(loader.getId());
+		if (startTime != null) {
+			long duration = System.currentTimeMillis() - startTime;
+			sendTime(duration, loader, null);
+		}
+	}
+
+	public void onSaveInstanceState(Bundle out) {
+		int[] ids = new int[startTimes.size()];
+		long[] values = new long[startTimes.size()];
+		for (int i = 0; i < startTimes.size(); ++i) {
+			ids[i] = startTimes.keyAt(i);
+			values[i] = startTimes.valueAt(i);
+		}
+		out.putIntArray(KEY_START_TIME_IDS, ids);
+		out.putLongArray(KEY_START_TIME_VALUES, values);
 	}
 
 }
