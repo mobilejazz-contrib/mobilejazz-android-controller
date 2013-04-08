@@ -13,7 +13,7 @@ import android.util.SparseArray;
  * 
  * @param <T>
  */
-public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
+public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T>, OnLoadInitiatedListener<T> {
 
 	public static final int FINISHED = 0;
 	public static final int RESET = 1;
@@ -38,7 +38,7 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
 	 * Subclasses must create and return a loader here. Same semantics as
 	 * {@link #onCreateLoader(int, Bundle)}.
 	 */
-	protected abstract Loader<T> createLoader(int id, Bundle args);
+	protected abstract ObservableLoader<T> createLoader(int id, Bundle args);
 
 	/**
 	 * Process the time it took to perform the given operation. The operation is
@@ -57,26 +57,23 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
 
 	@Override
 	public Loader<T> onCreateLoader(int id, Bundle args) {
-		startTimes.put(id, System.currentTimeMillis());
-		return createLoader(id, args);
+		ObservableLoader<T> loader = createLoader(id, args);
+		loader.setOnLoadInitiatedListener(this);
+		return loader;
 	}
 
 	@Override
 	public void onLoadFinished(Loader<T> loader, T data) {
 		Long startTime = startTimes.get(loader.getId());
+		long now = System.currentTimeMillis();
 		if (startTime != null) {
-			long duration = System.currentTimeMillis() - startTime;
+			long duration = now - startTime;
 			sendTime(duration, loader, data);
 		}
 	}
 
 	@Override
 	public void onLoaderReset(Loader<T> loader) {
-		Long startTime = startTimes.get(loader.getId());
-		if (startTime != null) {
-			long duration = System.currentTimeMillis() - startTime;
-			sendTime(duration, loader, null);
-		}
 	}
 
 	public void onSaveInstanceState(Bundle out) {
@@ -88,6 +85,13 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
 		}
 		out.putIntArray(KEY_START_TIME_IDS, ids);
 		out.putLongArray(KEY_START_TIME_VALUES, values);
+	}
+
+	@Override
+	public void onLoadInitiated(Loader<T> loader) {
+		long startTime = System.currentTimeMillis();
+		int id = loader.getId();
+		startTimes.put(id, startTime);
 	}
 
 }
