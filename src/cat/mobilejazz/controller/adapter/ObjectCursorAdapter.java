@@ -16,7 +16,7 @@ import android.view.ViewGroup;
  * @author Hannes Widmoser
  * 
  */
-public abstract class ObjectCursorAdapter<T extends CursorBindable> extends CursorAdapter {
+public abstract class ObjectCursorAdapter<T> extends CursorAdapter {
 
 	public static interface ViewBinder<T> {
 
@@ -41,49 +41,25 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 	protected int mLayoutResId;
 	protected LayoutInflater mInflater;
 
+	protected ObjectBinder<T> mObjectBinder;
 	protected ViewBinder<T> mViewBinder;
 
 	private T objectHolder;
 
-	public ObjectCursorAdapter(Context context, int layoutResId, ViewBinder<T> viewBinder) {
+	public ObjectCursorAdapter(Context context, int layoutResId, ViewBinder<T> viewBinder, ObjectBinder<T> objectBinder) {
 		super(context, null, 0);
 		mLayoutResId = layoutResId;
 		mInflater = LayoutInflater.from(context);
 
 		mViewBinder = viewBinder;
-	}
-
-	/**
-	 * Creates a new empty instance of the class <T>.
-	 * 
-	 * @return An new object instance.
-	 */
-	protected abstract T newInstance();
-
-	/**
-	 * Binds an already existing instance of an object to a new cursor entry.
-	 * This is used for performance optimization, but the result should be the
-	 * same as in {@link #newInstance(Cursor)}. More formally for any cursor c
-	 * the following must always be true:
-	 * {@code newInstance(c).equals(bindInstance(i, c))} for any instance
-	 * {@code i}.
-	 * 
-	 * @param instance
-	 *            An instance to reuse.
-	 * @param c
-	 *            The cursor.
-	 * @return A changed object instance reflecting the contents of the cursor.
-	 */
-	protected T bindInstance(T instance, Cursor c) {
-		instance.setValues(c);
-		return instance;
+		mObjectBinder = objectBinder;
 	}
 
 	private T fromCursor(Cursor c) {
 		if (objectHolder == null) {
-			objectHolder = newInstance();
+			objectHolder = mObjectBinder.newInstance();
 		}
-		bindInstance(objectHolder, c);
+		mObjectBinder.bindInstance(objectHolder, c);
 		return objectHolder;
 	}
 
@@ -99,8 +75,8 @@ public abstract class ObjectCursorAdapter<T extends CursorBindable> extends Curs
 
 	@Override
 	public T getItem(int position) {
-		T instance = newInstance();
-		bindInstance(instance, (Cursor) super.getItem(position));
+		T instance = mObjectBinder.newInstance();
+		mObjectBinder.bindInstance(instance, (Cursor) super.getItem(position));
 		return instance;
 	}
 
