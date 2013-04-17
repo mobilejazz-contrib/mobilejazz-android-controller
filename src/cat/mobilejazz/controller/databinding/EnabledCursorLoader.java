@@ -39,6 +39,7 @@ public class EnabledCursorLoader extends ObservableCursorLoader {
 		public CachedLoadContentObserver(LoaderParent parent) {
 			super(new Handler());
 			mParent = parent;
+			mParent.addOnEnabledChangedListener(this);
 		}
 
 		@Override
