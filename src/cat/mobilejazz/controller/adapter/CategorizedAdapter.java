@@ -1,5 +1,6 @@
 package cat.mobilejazz.controller.adapter;
 
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 import android.content.Context;
@@ -71,6 +72,23 @@ public abstract class CategorizedAdapter<Category, AdapterType extends Adapter> 
 	@Override
 	public int getCount() {
 		return mDelegate.getCount() + mHeaderIndices.size();
+	}
+
+	/**
+	 * Returns the number of child items of the category at the given position.
+	 * If there is a normal item at that position {@code 1} is returned.
+	 */
+	public int getCount(int position) {
+		if (mHeaderIndices.containsKey(position)) {
+			SortedMap<Integer, Category> tailMap = mHeaderIndices.tailMap(position + 1);
+			if (tailMap.size() > 0) {
+				return tailMap.firstKey() - position - 1;
+			} else {
+				return getCount() - position - 1;
+			}
+		} else {
+			return 1;
+		}
 	}
 
 	@Override
