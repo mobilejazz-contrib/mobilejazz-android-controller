@@ -29,10 +29,11 @@ public abstract class ProgressLayoutInputDialog<T> extends LayoutInputDialog<T> 
 	}
 
 	@Override
-	protected void onStartTask() {
+	protected boolean onStartTask() {
 		super.onStartTask();
 		mProgressBar.setVisibility(View.VISIBLE);
 		enableInputWidget(false);
+		return true;
 	}
 
 	@Override

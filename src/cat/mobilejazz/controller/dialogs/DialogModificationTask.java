@@ -21,8 +21,9 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 			switch (which) {
 			case DialogInterface.BUTTON_POSITIVE:
 				try {
-					onStartTask();
-					performTask();
+					if (onStartTask()) {
+						performTask();
+					}
 				} catch (Exception e) {
 					// TODO: show error message:
 					abort();
@@ -37,11 +38,11 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 		}
 
 	}
-	
+
 	public static interface OnTaskFinishedListener {
-		
+
 		public void onFinish(DialogModificationTask dialog);
-		
+
 	}
 
 	private ObservableAsyncQueryHandler mQueryHandler;
@@ -49,7 +50,7 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 	private int mTitleResId;
 	private int mPositiveButtonLabelResId;
 	private int mNeutralButtonLabelResId;
-	
+
 	private OnTaskFinishedListener mListener;
 
 	public DialogModificationTask(int titleResId, int positiveButtonLabelResId, int neutralButtonLabelResId) {
@@ -57,11 +58,11 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 		mPositiveButtonLabelResId = positiveButtonLabelResId;
 		mNeutralButtonLabelResId = neutralButtonLabelResId;
 	}
-	
+
 	public void setOnTaskFinishListener(OnTaskFinishedListener listener) {
 		mListener = listener;
 	}
-	
+
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
@@ -72,7 +73,8 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 
 	protected abstract void performTask() throws Exception;
 
-	protected void onStartTask() {
+	protected boolean onStartTask() {
+		return true;
 	}
 
 	protected void onCancelTask() {
@@ -85,12 +87,12 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 	}
 
 	public void finish() {
-		//dismiss();
+		// dismiss();
 		onCompleteTask();
 	}
-	
+
 	public void abort() {
-		//dismiss();
+		// dismiss();
 		onCancelTask();
 	}
 
@@ -123,7 +125,7 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 	public void onInsertComplete(int token, Object cookie, Uri result) {
 		finish();
 	}
-	
+
 	public ObservableAsyncQueryHandler getQueryHandler() {
 		return mQueryHandler;
 	}
