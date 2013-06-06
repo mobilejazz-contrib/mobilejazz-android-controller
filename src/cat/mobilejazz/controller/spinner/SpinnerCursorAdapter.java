@@ -159,4 +159,14 @@ public abstract class SpinnerCursorAdapter<T> extends ViewArrayAdapter<T> {
 		// default: do nothing
 	}
 
+	@Override
+	public boolean isEnabled(int position) {
+		return areAllItemsEnabled() || (position != mStaticObjects.length);
+	}
+
+	@Override
+	public boolean areAllItemsEnabled() {
+		return !(loadInProgress() && mShowProgress);
+	}
+
 }
