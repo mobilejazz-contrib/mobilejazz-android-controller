@@ -2,50 +2,40 @@ package cat.mobilejazz.controller.dialogs;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
-import android.database.Cursor;
-import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 import android.view.LayoutInflater;
 import android.view.View;
-import cat.mobilejazz.controller.observer.ObservableAsyncQueryHandler;
-import cat.mobilejazz.controller.observer.ObservableAsyncQueryHandler.OnCompleteHandler;
+import android.view.View.OnClickListener;
+import cat.mobilejazz.utilities.concurrency.AsyncDialogFragment;
 
-public abstract class DialogModificationTask extends DialogFragment implements OnCompleteHandler {
+public abstract class DialogModificationTask extends AsyncDialogFragment {
 
-	protected class ButtonListener implements DialogInterface.OnClickListener {
-
+	protected OnClickListener mOnPositiveClick = new OnClickListener() {
 		@Override
-		public void onClick(DialogInterface dialog, int which) {
-			switch (which) {
-			case DialogInterface.BUTTON_POSITIVE:
-				try {
-					if (onStartTask()) {
-						performTask();
-					}
-				} catch (Exception e) {
-					// TODO: show error message:
-					abort();
+		public void onClick(View v) {
+			try {
+				if (onStartTask()) {
+					performTask();
 				}
-				break;
-			case DialogInterface.BUTTON_NEUTRAL:
+			} catch (Exception e) {
+				// TODO: show error message:
 				abort();
-				break;
-			default:
-				break;
 			}
 		}
+	};
 
-	}
+	protected OnClickListener mOnNegativeClick = new OnClickListener() {
+		@Override
+		public void onClick(View v) {
+			abort();
+		}
+	};
 
 	public static interface OnTaskFinishedListener {
 
 		public void onFinish(DialogModificationTask dialog);
 
 	}
-
-	private ObservableAsyncQueryHandler mQueryHandler;
 
 	private int mTitleResId;
 	private int mPositiveButtonLabelResId;
@@ -63,15 +53,11 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 		mListener = listener;
 	}
 
-	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-		mQueryHandler = new ObservableAsyncQueryHandler(getActivity(), this);
-	}
-
 	protected abstract View createContentView(Bundle savedInstanceState, LayoutInflater inflater);
 
-	protected abstract void performTask() throws Exception;
+	protected void performTask() {
+		getTask().execute();
+	}
 
 	protected boolean onStartTask() {
 		return true;
@@ -86,48 +72,33 @@ public abstract class DialogModificationTask extends DialogFragment implements O
 		}
 	}
 
-	public void finish() {
-		// dismiss();
+	@Override
+	protected void finish() {
+		super.finish();
 		onCompleteTask();
 	}
 
 	public void abort() {
-		// dismiss();
+		getDialog().cancel();
+		dismiss();
 		onCancelTask();
 	}
 
 	@Override
 	public Dialog onCreateDialog(Bundle savedInstanceState) {
-		ButtonListener listener = new ButtonListener();
 		AlertDialog dialog = new AlertDialog.Builder(getActivity()).setTitle(mTitleResId)
 				.setView(createContentView(savedInstanceState, getActivity().getLayoutInflater()))
-				.setPositiveButton(mPositiveButtonLabelResId, listener)
-				.setNeutralButton(mNeutralButtonLabelResId, listener).create();
+				.setPositiveButton(mPositiveButtonLabelResId, null).setNeutralButton(mNeutralButtonLabelResId, null)
+				.create();
 		return dialog;
 	}
 
 	@Override
-	public void onQueryComplete(int token, Object cookie, Cursor result) {
-		finish();
-	}
-
-	@Override
-	public void onUpdateComplete(int token, Object cookie, int result) {
-		finish();
-	}
-
-	@Override
-	public void onDeleteComplete(int token, Object cookie, int result) {
-		finish();
-	}
-
-	@Override
-	public void onInsertComplete(int token, Object cookie, Uri result) {
-		finish();
-	}
-
-	public ObservableAsyncQueryHandler getQueryHandler() {
-		return mQueryHandler;
+	public void onStart() {
+		super.onStart();
+		AlertDialog dialog = (AlertDialog) getDialog();
+		dialog.getButton(Dialog.BUTTON_POSITIVE).setOnClickListener(mOnPositiveClick);
+		dialog.getButton(Dialog.BUTTON_NEUTRAL).setOnClickListener(mOnNegativeClick);
 	}
 
 }

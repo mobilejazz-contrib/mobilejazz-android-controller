@@ -37,7 +37,7 @@ public abstract class LayoutModificationDialog extends DialogModificationTask {
 	@Override
 	public void onStart() {
 		super.onStart();
-		
+
 	}
 
 	protected abstract void onInitalizeContentView(View contentView);
