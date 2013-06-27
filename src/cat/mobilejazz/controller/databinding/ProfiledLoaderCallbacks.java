@@ -13,7 +13,7 @@ import android.util.SparseArray;
  * 
  * @param <T>
  */
-public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T>, OnLoadInitiatedListener<T> {
+public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T> {
 
 	public static final int FINISHED = 0;
 	public static final int RESET = 1;
@@ -21,17 +21,45 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T>, 
 	private static final String KEY_START_TIME_IDS = "cat.mobilejazz.ProfileLoaderCallbacks.startTimeIds";
 	private static final String KEY_START_TIME_VALUES = "cat.mobilejazz.ProfileLoaderCallbacks.startTimeValues";
 
-	private SparseArray<Long> startTimes = new SparseArray<Long>();
+	private static class MyOnLoadInitiatedListener<T> implements OnLoadInitiatedListener<T> {
 
-	public void initFromSavedInstanceState(Bundle savedInstanceState) {
-		if (savedInstanceState != null) {
-			int[] ids = savedInstanceState.getIntArray(KEY_START_TIME_IDS);
-			long[] values = savedInstanceState.getLongArray(KEY_START_TIME_VALUES);
+		private SparseArray<Long> startTimes = new SparseArray<Long>();
 
-			for (int i = 0; i < ids.length; ++i) {
-				startTimes.put(ids[i], values[i]);
+		@Override
+		public void onLoadInitiated(Loader<T> loader) {
+			long startTime = System.currentTimeMillis();
+			int id = loader.getId();
+			startTimes.put(id, startTime);
+		}
+
+		public void initFromSavedInstanceState(Bundle savedInstanceState) {
+			if (savedInstanceState != null) {
+				int[] ids = savedInstanceState.getIntArray(KEY_START_TIME_IDS);
+				long[] values = savedInstanceState.getLongArray(KEY_START_TIME_VALUES);
+
+				for (int i = 0; i < ids.length; ++i) {
+					startTimes.put(ids[i], values[i]);
+				}
 			}
 		}
+
+		public void onSaveInstanceState(Bundle out) {
+			int[] ids = new int[startTimes.size()];
+			long[] values = new long[startTimes.size()];
+			for (int i = 0; i < startTimes.size(); ++i) {
+				ids[i] = startTimes.keyAt(i);
+				values[i] = startTimes.valueAt(i);
+			}
+			out.putIntArray(KEY_START_TIME_IDS, ids);
+			out.putLongArray(KEY_START_TIME_VALUES, values);
+		}
+
+	}
+
+	MyOnLoadInitiatedListener<T> onLoadListener = new MyOnLoadInitiatedListener<T>();
+
+	public void initFromSavedInstanceState(Bundle savedInstanceState) {
+		onLoadListener.initFromSavedInstanceState(savedInstanceState);
 	}
 
 	/**
@@ -58,13 +86,13 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T>, 
 	@Override
 	public Loader<T> onCreateLoader(int id, Bundle args) {
 		ObservableLoader<T> loader = createLoader(id, args);
-		loader.setOnLoadInitiatedListener(this);
+		loader.setOnLoadInitiatedListener(onLoadListener);
 		return loader;
 	}
 
 	@Override
 	public void onLoadFinished(Loader<T> loader, T data) {
-		Long startTime = startTimes.get(loader.getId());
+		Long startTime = onLoadListener.startTimes.get(loader.getId());
 		long now = System.currentTimeMillis();
 		if (startTime != null) {
 			long duration = now - startTime;
@@ -77,21 +105,7 @@ public abstract class ProfiledLoaderCallbacks<T> implements LoaderCallbacks<T>, 
 	}
 
 	public void onSaveInstanceState(Bundle out) {
-		int[] ids = new int[startTimes.size()];
-		long[] values = new long[startTimes.size()];
-		for (int i = 0; i < startTimes.size(); ++i) {
-			ids[i] = startTimes.keyAt(i);
-			values[i] = startTimes.valueAt(i);
-		}
-		out.putIntArray(KEY_START_TIME_IDS, ids);
-		out.putLongArray(KEY_START_TIME_VALUES, values);
-	}
-
-	@Override
-	public void onLoadInitiated(Loader<T> loader) {
-		long startTime = System.currentTimeMillis();
-		int id = loader.getId();
-		startTimes.put(id, startTime);
+		onLoadListener.onSaveInstanceState(out);
 	}
 
 }
