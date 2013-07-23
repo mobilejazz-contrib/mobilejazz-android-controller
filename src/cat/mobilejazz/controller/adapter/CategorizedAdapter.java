@@ -133,9 +133,9 @@ public abstract class CategorizedAdapter<Category, AdapterType extends Adapter> 
 		}
 	}
 
-	public abstract View newView(Context context, Category category, ViewGroup parent);
+	public abstract View newView(Context context, Category category, ViewGroup parent, int position);
 
-	public abstract void bindView(View view, Context context, Category category);
+	public abstract void bindView(View view, Context context, Category category, int position);
 
 	@Override
 	public View getView(int position, View convertView, ViewGroup parent) {
@@ -143,11 +143,11 @@ public abstract class CategorizedAdapter<Category, AdapterType extends Adapter> 
 		if (header != null) {
 			View v;
 			if (convertView == null) {
-				v = newView(mContext, header, parent);
+				v = newView(mContext, header, parent, position);
 			} else {
 				v = convertView;
 			}
-			bindView(v, mContext, header);
+			bindView(v, mContext, header, position);
 			return v;
 		} else {
 			return mDelegate.getView(getCursorIndex(position), convertView, parent);
