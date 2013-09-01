@@ -11,9 +11,10 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import cat.mobilejazz.controller.adapter.ICursorAdapter;
 import cat.mobilejazz.utilities.CompatibilityUtils;
 
-public abstract class SpinnerCursorAdapter<T> extends ViewArrayAdapter<T> {
+public abstract class SpinnerCursorAdapter<T> extends ViewArrayAdapter<T> implements ICursorAdapter<T> {
 
 	public class MyDataSetObserver extends DataSetObserver {
 
