@@ -16,7 +16,7 @@ import android.view.ViewGroup;
  * @author Hannes Widmoser
  * 
  */
-public abstract class ObjectCursorAdapter<T> extends CursorAdapter {
+public class ObjectCursorAdapter<T> extends CursorAdapter {
 
 	public static interface ViewBinder<T> {
 
